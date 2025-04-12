@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useState } from 'react';
-import { useMobile } from '../../hooks/use-mobile';
+import { useIsMobile } from '../../hooks/use-mobile';
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -41,7 +41,7 @@ const SidebarItem = ({ icon, label, to, active }: SidebarItemProps) => {
 
 export function Sidebar() {
   const location = useLocation();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleSidebar = () => {
