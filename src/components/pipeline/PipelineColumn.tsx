@@ -24,7 +24,7 @@ export function PipelineColumn({ stage, onAddDeal }: PipelineColumnProps) {
   const totalValue = deals.reduce((sum, deal) => sum + deal.value, 0);
   
   return (
-    <div className="flex h-full min-w-[280px] flex-col rounded-md border bg-card">
+    <div className="flex h-full min-w-[280px] flex-col rounded-md border bg-card shadow-sm transition-all duration-200 hover:shadow-md">
       <div className="flex items-center justify-between border-b p-3">
         <div className="flex items-center gap-2">
           <div className={cn("h-3 w-3 rounded-full", stage.color)} />
@@ -39,7 +39,7 @@ export function PipelineColumn({ stage, onAddDeal }: PipelineColumnProps) {
       <div
         ref={setNodeRef}
         className={cn(
-          "flex flex-1 flex-col gap-2 overflow-y-auto p-3",
+          "flex flex-1 flex-col gap-2 overflow-y-auto p-3 transition-colors duration-200",
           isOver && "bg-muted/50"
         )}
         data-stage-id={stage.id}
@@ -60,7 +60,7 @@ export function PipelineColumn({ stage, onAddDeal }: PipelineColumnProps) {
       <div className="border-t p-2">
         <Button 
           variant="ghost" 
-          className="w-full justify-start text-muted-foreground"
+          className="w-full justify-start text-muted-foreground hover:text-foreground transition-colors"
           onClick={() => onAddDeal(stage.id)}
         >
           <Plus className="mr-1 h-4 w-4" />

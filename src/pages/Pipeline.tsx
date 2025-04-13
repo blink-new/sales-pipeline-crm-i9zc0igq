@@ -20,6 +20,7 @@ import {
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Deal } from '../types';
 import { DealCard } from '../components/pipeline/DealCard';
+import { toast } from 'sonner';
 
 export function Pipeline() {
   const { pipelineStages, deals, getDealById, updateDealStage } = useCrm();
@@ -75,7 +76,15 @@ export function Pipeline() {
       
       // If we have a valid stage ID from either direct drop or from activeDroppableId
       if (pipelineStages.some(stage => stage.id === targetStageId)) {
+        const deal = getDealById(dealId);
+        const oldStage = pipelineStages.find(stage => stage.id === deal?.stage);
+        const newStage = pipelineStages.find(stage => stage.id === targetStageId);
+        
         updateDealStage(dealId, targetStageId);
+        
+        if (oldStage && newStage && oldStage.id !== newStage.id) {
+          toast.success(`Deal moved to ${newStage.name} stage`);
+        }
       } else if (activeDroppableId) {
         // Fallback to the last known droppable area
         updateDealStage(dealId, activeDroppableId);
@@ -95,7 +104,7 @@ export function Pipeline() {
   const activeDeal = activeDealId ? getDealById(activeDealId) : null;
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Pipeline</h1>
