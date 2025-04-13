@@ -11,7 +11,7 @@ export function Dashboard() {
   const { salesMetrics } = useCrm();
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
@@ -50,12 +50,12 @@ export function Dashboard() {
         />
       </div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3">
         <SalesChart />
         <RecentActivities />
       </div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <DealsForecast />
         <RecentContacts />
       </div>

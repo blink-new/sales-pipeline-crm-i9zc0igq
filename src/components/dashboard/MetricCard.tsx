@@ -1,42 +1,67 @@
 
-import { ArrowDownIcon, ArrowUpIcon } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { cn } from '../../lib/utils';
+import { Card, CardContent } from "../ui/card";
+import { cn } from "../../lib/utils";
+import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 
 interface MetricCardProps {
   title: string;
-  value: string | number;
+  value: number;
   change: number;
-  icon?: React.ReactNode;
+  icon: React.ReactNode;
   prefix?: string;
   suffix?: string;
 }
 
-export function MetricCard({ title, value, change, icon, prefix, suffix }: MetricCardProps) {
+export function MetricCard({
+  title,
+  value,
+  change,
+  icon,
+  prefix = "",
+  suffix = "",
+}: MetricCardProps) {
   const isPositive = change >= 0;
-  
+  const formattedValue = value.toLocaleString();
+  const formattedChange = Math.abs(change).toFixed(1);
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        {icon && <div className="h-4 w-4 text-muted-foreground">{icon}</div>}
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">
-          {prefix}{typeof value === 'number' ? value.toLocaleString() : value}{suffix}
+    <Card className="overflow-hidden transition-all hover:shadow-md">
+      <CardContent className="p-0">
+        <div className="flex flex-col">
+          <div className="flex items-center justify-between border-b p-4">
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <div className="rounded-full bg-primary/10 p-2 text-primary">
+              {icon}
+            </div>
+          </div>
+          
+          <div className="space-y-2 p-4">
+            <div className="flex items-baseline">
+              <span className="text-2xl font-bold tracking-tight">
+                {prefix}
+                {formattedValue}
+                {suffix}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-1">
+              <div
+                className={cn(
+                  "flex items-center text-xs font-medium",
+                  isPositive ? "text-green-500" : "text-red-500"
+                )}
+              >
+                {isPositive ? (
+                  <ArrowUpIcon className="mr-1 h-3 w-3" />
+                ) : (
+                  <ArrowDownIcon className="mr-1 h-3 w-3" />
+                )}
+                {formattedChange}%
+              </div>
+              <p className="text-xs text-muted-foreground">vs last period</p>
+            </div>
+          </div>
         </div>
-        <p className="flex items-center text-xs text-muted-foreground">
-          <span
-            className={cn(
-              "mr-1 flex items-center",
-              isPositive ? "text-green-500" : "text-red-500"
-            )}
-          >
-            {isPositive ? <ArrowUpIcon className="h-3 w-3" /> : <ArrowDownIcon className="h-3 w-3" />}
-            <span className="ml-1">{Math.abs(change)}%</span>
-          </span>
-          <span>from last period</span>
-        </p>
       </CardContent>
     </Card>
   );
