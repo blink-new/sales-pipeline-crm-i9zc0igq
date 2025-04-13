@@ -9,28 +9,108 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Switch } from '../components/ui/switch';
 import { Separator } from '../components/ui/separator';
 import { toast } from 'sonner';
+import { useTheme } from '../context/ThemeContext';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 
 export function Settings() {
   const { currentUser, pipelineStages } = useCrm();
+  const { theme, setTheme } = useTheme();
   
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [browserNotifications, setBrowserNotifications] = useState(true);
   const [dailyDigest, setDailyDigest] = useState(false);
+  
+  // Form states
+  const [name, setName] = useState(currentUser.name);
+  const [email, setEmail] = useState(currentUser.email);
+  const [role, setRole] = useState(currentUser.role);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   
   const handleSaveNotifications = () => {
     toast.success('Notification settings saved');
   };
   
   const handleSaveProfile = () => {
+    if (!name || !email) {
+      toast.error('Name and email are required');
+      return;
+    }
+    
     toast.success('Profile settings saved');
   };
   
+  const handleUpdatePassword = () => {
+    if (!currentPassword) {
+      toast.error('Current password is required');
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    
+    if (newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
+    
+    toast.success('Password updated successfully');
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+  };
+  
   const handleExportData = () => {
-    toast.success('Data export initiated');
+    const { contacts, deals, activities } = useCrm();
+    const exportData = {
+      contacts,
+      deals,
+      activities,
+      exportDate: new Date().toISOString()
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `crm-export-${new Date().toISOString().slice(0, 10)}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    toast.success('Data exported successfully');
+  };
+  
+  const handleClearData = () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to clear all data? This action cannot be undone.'
+    );
+    
+    if (confirmed) {
+      localStorage.removeItem('crm-contacts');
+      localStorage.removeItem('crm-deals');
+      localStorage.removeItem('crm-activities');
+      
+      toast.success('All data cleared successfully. Refresh the page to see changes.');
+    }
+  };
+  
+  const handleSavePipelineStages = () => {
+    toast.success('Pipeline stages saved');
   };
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground">
@@ -42,6 +122,7 @@ export function Settings() {
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
           <TabsTrigger value="data">Data Management</TabsTrigger>
         </TabsList>
@@ -57,17 +138,30 @@ export function Settings() {
             <CardContent className="space-y-4">
               <div className="grid gap-2">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" defaultValue={currentUser.name} />
+                <Input 
+                  id="name" 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
               </div>
               
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" defaultValue={currentUser.email} />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
               
               <div className="grid gap-2">
                 <Label htmlFor="role">Role</Label>
-                <Input id="role" defaultValue={currentUser.role} />
+                <Input 
+                  id="role" 
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                />
               </div>
               
               <Button onClick={handleSaveProfile}>Save Changes</Button>
@@ -84,20 +178,35 @@ export function Settings() {
             <CardContent className="space-y-4">
               <div className="grid gap-2">
                 <Label htmlFor="current-password">Current Password</Label>
-                <Input id="current-password" type="password" />
+                <Input 
+                  id="current-password" 
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                />
               </div>
               
               <div className="grid gap-2">
                 <Label htmlFor="new-password">New Password</Label>
-                <Input id="new-password" type="password" />
+                <Input 
+                  id="new-password" 
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
               </div>
               
               <div className="grid gap-2">
                 <Label htmlFor="confirm-password">Confirm New Password</Label>
-                <Input id="confirm-password" type="password" />
+                <Input 
+                  id="confirm-password" 
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
               </div>
               
-              <Button>Update Password</Button>
+              <Button onClick={handleUpdatePassword}>Update Password</Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -159,6 +268,38 @@ export function Settings() {
           </Card>
         </TabsContent>
         
+        <TabsContent value="appearance" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Appearance</CardTitle>
+              <CardDescription>
+                Customize the look and feel of the application
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Theme</Label>
+                <Select
+                  value={theme}
+                  onValueChange={(value: any) => setTheme(value)}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select theme" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="system">System</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  Choose between light, dark, or system theme
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
         <TabsContent value="pipeline" className="space-y-4">
           <Card>
             <CardHeader>
@@ -173,17 +314,27 @@ export function Settings() {
                   <div key={stage.id} className="flex items-center gap-4">
                     <div className={`h-4 w-4 rounded-full ${stage.color}`} />
                     <Input defaultValue={stage.name} className="max-w-xs" />
-                    <Button variant="outline" size="sm" disabled={index === 0}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      disabled={index === 0}
+                      onClick={() => toast.info("Stage order would be updated")}
+                    >
                       Move Up
                     </Button>
-                    <Button variant="outline" size="sm" disabled={index === pipelineStages.length - 1}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      disabled={index === pipelineStages.length - 1}
+                      onClick={() => toast.info("Stage order would be updated")}
+                    >
                       Move Down
                     </Button>
                   </div>
                 ))}
                 
                 <div className="pt-4">
-                  <Button>Save Pipeline Stages</Button>
+                  <Button onClick={handleSavePipelineStages}>Save Pipeline Stages</Button>
                 </div>
               </div>
             </CardContent>
@@ -216,7 +367,7 @@ export function Settings() {
                 <p className="text-sm text-muted-foreground">
                   This will permanently delete all your CRM data. This action cannot be undone.
                 </p>
-                <Button variant="destructive">
+                <Button variant="destructive" onClick={handleClearData}>
                   Clear All Data
                 </Button>
               </div>

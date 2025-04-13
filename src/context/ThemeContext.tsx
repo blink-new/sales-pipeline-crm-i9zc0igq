@@ -37,12 +37,12 @@ export function ThemeProvider({
     }
 
     root.classList.add(theme);
+    localStorage.setItem("theme", theme);
   }, [theme]);
 
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem("theme", theme);
       setTheme(theme);
     },
   };
