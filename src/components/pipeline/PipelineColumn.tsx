@@ -42,6 +42,7 @@ export function PipelineColumn({ stage, onAddDeal }: PipelineColumnProps) {
           "flex flex-1 flex-col gap-2 overflow-y-auto p-3",
           isOver && "bg-muted/50"
         )}
+        data-stage-id={stage.id}
       >
         <SortableContext items={deals.map(deal => deal.id)} strategy={verticalListSortingStrategy}>
           {deals.map((deal) => (

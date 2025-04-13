@@ -10,9 +10,10 @@ import { useNavigate } from 'react-router-dom';
 
 interface DealCardProps {
   deal: Deal;
+  isDragging?: boolean;
 }
 
-export function DealCard({ deal }: DealCardProps) {
+export function DealCard({ deal, isDragging = false }: DealCardProps) {
   const { getContactName } = useCrm();
   const contactName = getContactName(deal.contactId);
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export function DealCard({ deal }: DealCardProps) {
     setNodeRef,
     transform,
     transition,
-    isDragging,
+    isDragging: isSortableDragging,
   } = useSortable({ id: deal.id });
   
   const style = {
@@ -33,10 +34,13 @@ export function DealCard({ deal }: DealCardProps) {
   
   const handleClick = (e: React.MouseEvent) => {
     // Only navigate if we're not dragging
-    if (!isDragging) {
+    if (!isSortableDragging) {
       navigate(`/deals/${deal.id}`);
     }
   };
+  
+  // Use either the prop or the internal dragging state
+  const isCurrentlyDragging = isDragging || isSortableDragging;
   
   return (
     <div
@@ -50,7 +54,7 @@ export function DealCard({ deal }: DealCardProps) {
         onClick={handleClick}
         className={cn(
           "mb-2 cursor-pointer border-l-4 hover:bg-accent",
-          isDragging ? "opacity-50" : "opacity-100",
+          isCurrentlyDragging ? "opacity-50" : "opacity-100",
           deal.probability >= 70 ? "border-l-green-500" : 
           deal.probability >= 40 ? "border-l-yellow-500" : "border-l-red-500"
         )}

@@ -8,13 +8,14 @@ import { Plus, Filter } from 'lucide-react';
 import { 
   DndContext, 
   DragOverlay, 
-  closestCorners, 
+  closestCenter,
   KeyboardSensor, 
   PointerSensor, 
   useSensor, 
   useSensors, 
   DragStartEvent, 
-  DragEndEvent 
+  DragEndEvent,
+  DragOverEvent
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Deal } from '../types';
@@ -26,6 +27,7 @@ export function Pipeline() {
   const [isAddDealOpen, setIsAddDealOpen] = useState(false);
   const [initialStage, setInitialStage] = useState<string | undefined>();
   const [activeDealId, setActiveDealId] = useState<string | null>(null);
+  const [activeDroppableId, setActiveDroppableId] = useState<string | null>(null);
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -42,17 +44,47 @@ export function Pipeline() {
     setActiveDealId(event.active.id as string);
   };
   
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over } = event;
+    if (over) {
+      // Check if we're over a stage
+      const isStage = pipelineStages.some(stage => stage.id === over.id);
+      if (isStage) {
+        setActiveDroppableId(over.id as string);
+      }
+    }
+  };
+  
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
-    if (over && active.id !== over.id) {
+    if (over) {
       const dealId = active.id as string;
-      const newStage = over.id as string;
+      let targetStageId = over.id as string;
       
-      updateDealStage(dealId, newStage);
+      // Check if we're dropping on a deal or a stage
+      const isDroppedOnDeal = deals.some(deal => deal.id === targetStageId);
+      
+      if (isDroppedOnDeal) {
+        // If dropped on a deal, find the stage that contains this deal
+        const targetDeal = getDealById(targetStageId);
+        if (targetDeal) {
+          targetStageId = targetDeal.stage;
+        }
+      }
+      
+      // If we have a valid stage ID from either direct drop or from activeDroppableId
+      if (pipelineStages.some(stage => stage.id === targetStageId)) {
+        updateDealStage(dealId, targetStageId);
+      } else if (activeDroppableId) {
+        // Fallback to the last known droppable area
+        updateDealStage(dealId, activeDroppableId);
+      }
     }
     
+    // Reset states
     setActiveDealId(null);
+    setActiveDroppableId(null);
   };
   
   const handleAddDeal = (stageId?: string) => {
@@ -87,8 +119,9 @@ export function Pipeline() {
       <div className="h-[calc(100vh-220px)] overflow-x-auto pb-4">
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCorners}
+          collisionDetection={closestCenter}
           onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
           <div className="flex h-full gap-4">
@@ -102,7 +135,7 @@ export function Pipeline() {
           </div>
           
           <DragOverlay>
-            {activeDeal ? <DealCard deal={activeDeal as Deal} /> : null}
+            {activeDeal ? <DealCard deal={activeDeal} isDragging={true} /> : null}
           </DragOverlay>
         </DndContext>
       </div>
