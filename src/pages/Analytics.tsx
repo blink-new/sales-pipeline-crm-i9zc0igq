@@ -19,9 +19,66 @@ import {
 import { format, subMonths, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { MetricCard } from '../components/dashboard/MetricCard';
 import { DollarSign, BarChart3, TrendingUp, Users } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+
+// Define color mapping for dark mode
+const colorMapping = {
+  'bg-blue-500': {
+    light: 'rgba(59, 130, 246, 0.8)',
+    dark: 'rgba(96, 165, 250, 0.8)'
+  },
+  'bg-purple-500': {
+    light: 'rgba(168, 85, 247, 0.8)',
+    dark: 'rgba(192, 132, 252, 0.8)'
+  },
+  'bg-yellow-500': {
+    light: 'rgba(234, 179, 8, 0.8)',
+    dark: 'rgba(250, 204, 21, 0.8)'
+  },
+  'bg-orange-500': {
+    light: 'rgba(249, 115, 22, 0.8)',
+    dark: 'rgba(251, 146, 60, 0.8)'
+  },
+  'bg-green-500': {
+    light: 'rgba(34, 197, 94, 0.8)',
+    dark: 'rgba(74, 222, 128, 0.8)'
+  },
+  'bg-red-500': {
+    light: 'rgba(239, 68, 68, 0.8)',
+    dark: 'rgba(248, 113, 113, 0.8)'
+  }
+};
+
+// Enhanced colors for charts
+const CHART_COLORS = {
+  light: {
+    primary: '#6366f1',
+    secondary: '#22c55e',
+    accent1: '#f59e0b',
+    accent2: '#ec4899',
+    accent3: '#8b5cf6',
+    accent4: '#06b6d4'
+  },
+  dark: {
+    primary: '#818cf8',
+    secondary: '#4ade80',
+    accent1: '#fbbf24',
+    accent2: '#f472b6',
+    accent3: '#a78bfa',
+    accent4: '#22d3ee'
+  }
+};
 
 export function Analytics() {
   const { deals, pipelineStages, salesMetrics, contacts } = useCrm();
+  const { theme } = useTheme();
+  
+  // Determine if we're in dark mode
+  const isDarkMode = theme === 'dark' || 
+    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  
+  // Get the appropriate color set based on theme
+  const colors = isDarkMode ? CHART_COLORS.dark : CHART_COLORS.light;
   
   // Calculate total value for each stage
   const stageData = pipelineStages.map(stage => {
@@ -33,7 +90,7 @@ export function Analytics() {
       name: stage.name,
       value: totalValue,
       count,
-      color: stage.color.replace('bg-', ''),
+      color: stage.color,
     };
   });
   
@@ -131,11 +188,18 @@ export function Analytics() {
   
   const contactData = contactAcquisitionData();
   
-  // COLORS for pie chart
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#FF6B6B'];
+  // COLORS for pie chart - using our enhanced colors
+  const PIE_COLORS = [
+    colors.primary,
+    colors.secondary,
+    colors.accent1,
+    colors.accent2,
+    colors.accent3,
+    colors.accent4
+  ];
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
         <p className="text-muted-foreground">
@@ -183,7 +247,7 @@ export function Analytics() {
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stageData} margin={{ top: 10, right: 10, left: 10, bottom: 30 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                   <XAxis 
                     dataKey="name" 
                     tick={{ fontSize: 12 }} 
@@ -204,8 +268,14 @@ export function Analytics() {
                   <Bar 
                     dataKey="value" 
                     radius={[4, 4, 0, 0]}
-                    className="fill-primary"
-                  />
+                  >
+                    {stageData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={colorMapping[entry.color as keyof typeof colorMapping]?.[isDarkMode ? 'dark' : 'light'] || colors.primary}
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -226,14 +296,13 @@ export function Analytics() {
                     cy="50%"
                     labelLine={false}
                     outerRadius={80}
-                    fill="#8884d8"
                     dataKey="count"
                     label={({ name, percent }) => 
                       `${name}: ${(percent * 100).toFixed(0)}%`
                     }
                   >
                     {stageData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
                   <Legend />
@@ -255,7 +324,7 @@ export function Analytics() {
                   data={monthlyData}
                   margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                   <XAxis 
                     dataKey="name" 
                     tick={{ fontSize: 12 }} 
@@ -263,7 +332,7 @@ export function Analytics() {
                     axisLine={false}
                   />
                   <YAxis 
-                tickFormatter={(value) => `$${value / 1000}k`}
+                    tickFormatter={(value) => `$${value / 1000}k`}
                     tick={{ fontSize: 12 }}
                     tickLine={false}
                     axisLine={false}
@@ -275,14 +344,14 @@ export function Analytics() {
                     type="monotone" 
                     dataKey="value" 
                     name="Pipeline Value" 
-                    stroke="#8884d8" 
+                    stroke={colors.primary}
                     activeDot={{ r: 8 }} 
                   />
                   <Line 
                     type="monotone" 
                     dataKey="won" 
                     name="Won Deals" 
-                    stroke="#82ca9d" 
+                    stroke={colors.secondary}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -301,7 +370,7 @@ export function Analytics() {
                   data={dealSizeData}
                   margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                   <XAxis 
                     dataKey="name" 
                     tick={{ fontSize: 12 }} 
@@ -332,14 +401,14 @@ export function Analytics() {
                     yAxisId="left"
                     dataKey="count" 
                     name="Number of Deals" 
-                    fill="#8884d8" 
+                    fill={colors.primary}
                     radius={[4, 4, 0, 0]}
                   />
                   <Bar 
                     yAxisId="right"
                     dataKey="value" 
                     name="Total Value" 
-                    fill="#82ca9d" 
+                    fill={colors.secondary}
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
@@ -359,7 +428,7 @@ export function Analytics() {
                   data={contactData}
                   margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                   <XAxis 
                     dataKey="name" 
                     tick={{ fontSize: 12 }} 
@@ -378,7 +447,7 @@ export function Analytics() {
                     type="monotone" 
                     dataKey="contacts" 
                     name="New Contacts" 
-                    stroke="#ff7300" 
+                    stroke={colors.accent1}
                     activeDot={{ r: 8 }} 
                   />
                 </LineChart>

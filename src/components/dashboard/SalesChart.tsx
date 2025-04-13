@@ -5,10 +5,44 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { cn } from '../../lib/utils';
 import { useState } from 'react';
 import { Button } from '../ui/button';
+import { useTheme } from '../../context/ThemeContext';
+
+// Define color mapping for dark mode
+const colorMapping = {
+  'bg-blue-500': {
+    light: 'rgba(59, 130, 246, 0.8)',
+    dark: 'rgba(96, 165, 250, 0.8)'
+  },
+  'bg-purple-500': {
+    light: 'rgba(168, 85, 247, 0.8)',
+    dark: 'rgba(192, 132, 252, 0.8)'
+  },
+  'bg-yellow-500': {
+    light: 'rgba(234, 179, 8, 0.8)',
+    dark: 'rgba(250, 204, 21, 0.8)'
+  },
+  'bg-orange-500': {
+    light: 'rgba(249, 115, 22, 0.8)',
+    dark: 'rgba(251, 146, 60, 0.8)'
+  },
+  'bg-green-500': {
+    light: 'rgba(34, 197, 94, 0.8)',
+    dark: 'rgba(74, 222, 128, 0.8)'
+  },
+  'bg-red-500': {
+    light: 'rgba(239, 68, 68, 0.8)',
+    dark: 'rgba(248, 113, 113, 0.8)'
+  }
+};
 
 export function SalesChart() {
   const { deals, pipelineStages } = useCrm();
   const [chartType, setChartType] = useState<'value' | 'count'>('value');
+  const { theme } = useTheme();
+  
+  // Determine if we're in dark mode
+  const isDarkMode = theme === 'dark' || 
+    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
   // Calculate data for each stage
   const stageData = pipelineStages.map(stage => {
@@ -100,8 +134,8 @@ export function SalesChart() {
                 {stageData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={entry.color.replace('bg-', 'var(--')}
-                    className="opacity-80 hover:opacity-100 transition-opacity"
+                    fill={colorMapping[entry.color as keyof typeof colorMapping]?.[isDarkMode ? 'dark' : 'light'] || '#8884d8'}
+                    className="transition-opacity hover:opacity-100"
                   />
                 ))}
               </Bar>
