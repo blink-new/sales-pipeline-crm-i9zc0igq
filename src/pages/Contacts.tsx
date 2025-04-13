@@ -7,26 +7,36 @@ import { ContactDialog } from '../components/contacts/ContactDialog';
 import { DeleteContactDialog } from '../components/contacts/DeleteContactDialog';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Filter, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 
 export function Contacts() {
   const { contacts, deleteContact } = useCrm();
   
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
   const [isDeleteContactOpen, setIsDeleteContactOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | undefined>();
   const [contactToDelete, setContactToDelete] = useState<string | null>(null);
   
   const filteredContacts = contacts.filter((contact) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      contact.name.toLowerCase().includes(query) ||
-      contact.email.toLowerCase().includes(query) ||
-      contact.company.toLowerCase().includes(query) ||
-      contact.phone.toLowerCase().includes(query)
-    );
+    const matchesSearch = searchQuery === '' || 
+      contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contact.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contact.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contact.phone.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || contact.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
   });
   
   const handleAddContact = () => {
@@ -54,7 +64,7 @@ export function Contacts() {
   };
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Contacts</h1>
@@ -64,12 +74,12 @@ export function Contacts() {
         </div>
         
         <Button onClick={handleAddContact}>
-          <Plus className="mr-2 h-4 w-4" />
+          <UserPlus className="mr-2 h-4 w-4" />
           Add Contact
         </Button>
       </div>
       
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -81,10 +91,27 @@ export function Contacts() {
           />
         </div>
         
-        <Button variant="outline">
-          <Filter className="mr-2 h-4 w-4" />
-          Filter
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select
+            value={statusFilter}
+            onValueChange={setStatusFilter}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="lead">Leads</SelectItem>
+              <SelectItem value="customer">Customers</SelectItem>
+              <SelectItem value="lost">Lost</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Button variant="outline">
+            <Filter className="mr-2 h-4 w-4" />
+            More Filters
+          </Button>
+        </div>
       </div>
       
       <ContactsTable 
@@ -92,6 +119,10 @@ export function Contacts() {
         onEdit={handleEditContact}
         onDelete={handleDeleteContact}
       />
+      
+      <div className="text-center text-sm text-muted-foreground">
+        Showing {filteredContacts.length} of {contacts.length} contacts
+      </div>
       
       <ContactDialog 
         isOpen={isAddContactOpen} 
