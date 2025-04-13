@@ -8,7 +8,8 @@ import {
   Settings, 
   ListFilter,
   Menu,
-  X
+  X,
+  Briefcase
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useState } from 'react';
@@ -26,10 +27,10 @@ const SidebarItem = ({ icon, label, to, active }: SidebarItemProps) => {
     <Link to={to}>
       <div
         className={cn(
-          'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all',
+          'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all',
           active 
-            ? 'bg-sidebar-accent text-sidebar-accent-foreground' 
-            : 'text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
+            ? 'bg-primary text-primary-foreground' 
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
         )}
       >
         {icon}
@@ -78,10 +79,13 @@ export function Sidebar() {
 
   const sidebarContent = (
     <div className="flex h-full flex-col gap-2">
-      <div className="px-3 py-2">
-        <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight text-sidebar-primary">
-          Sales CRM
-        </h2>
+      <div className="px-3 py-4">
+        <div className="mb-6 flex items-center gap-2 px-4">
+          <Briefcase className="h-6 w-6 text-primary" />
+          <h2 className="text-xl font-semibold tracking-tight">
+            Sales CRM
+          </h2>
+        </div>
         <div className="space-y-1">
           {sidebarItems.map((item) => (
             <SidebarItem
@@ -115,7 +119,7 @@ export function Sidebar() {
 
         <div
           className={cn(
-            "fixed inset-y-0 left-0 z-50 w-64 transform bg-sidebar-background p-4 shadow-lg transition-transform duration-200 ease-in-out",
+            "fixed inset-y-0 left-0 z-50 w-64 transform border-r bg-background p-4 shadow-lg transition-transform duration-200 ease-in-out",
             isOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
@@ -131,7 +135,7 @@ export function Sidebar() {
   }
 
   return (
-    <div className="hidden h-screen w-64 border-r bg-sidebar-background md:block">
+    <div className="hidden h-screen w-64 border-r bg-background md:block">
       {sidebarContent}
     </div>
   );

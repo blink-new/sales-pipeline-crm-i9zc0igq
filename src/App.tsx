@@ -1,6 +1,7 @@
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CrmProvider } from './context/CrmContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Layout } from './components/layout/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { Pipeline } from './pages/Pipeline';
@@ -12,21 +13,23 @@ import { DealDetail } from './pages/DealDetail';
 
 function App() {
   return (
-    <CrmProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="pipeline" element={<Pipeline />} />
-            <Route path="contacts" element={<Contacts />} />
-            <Route path="contacts/:id" element={<ContactDetail />} />
-            <Route path="deals/:id" element={<DealDetail />} />
-            <Route path="analytics" element={<Analytics />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
-        </Routes>
-      </Router>
-    </CrmProvider>
+    <ThemeProvider>
+      <CrmProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="pipeline" element={<Pipeline />} />
+              <Route path="contacts" element={<Contacts />} />
+              <Route path="contacts/:id" element={<ContactDetail />} />
+              <Route path="deals/:id" element={<DealDetail />} />
+              <Route path="analytics" element={<Analytics />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+          </Routes>
+        </Router>
+      </CrmProvider>
+    </ThemeProvider>
   );
 }
 
